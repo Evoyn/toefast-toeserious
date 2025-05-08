@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/css/styles.css" />
+    <title>Document</title>
+
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=New+Rocker&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
+
+      * {
+        font-family: "New Rocker", system-ui;
+        font-weight: 400;
+        font-style: normal;
+      }
+
+      body {
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-image: url(images/bgdom.jpg);
+        background-position: center center;
+        background-repeat: no-repeat;
+        background-size: cover;
+        background-attachment: fixed;
+        overflow: hidden;
+        height: 100vh;
+        width: 100vw;
+        margin: 0;
+        padding: 0;
+      }
+
+      input {
+        width: 100%;
+        padding: 12px 20px;
+        margin: 8px 0;
+        display: inline-block;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+      }
+
+      button {
+        width: 100%;
+        background-color: #b80202;
+        color: rgb(255, 255, 255);
+        padding: 14px 20px;
+        margin: 8px 0;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+
+      button:hover {
+        background-color: #3e8e41;
+      }
+
+      button:active {
+        background-color: #3e8e41;
+        box-shadow: 0 5px #666;
+        transform: translateY(4px);
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="container">
+      <div id="inputsec">
+        <input type="text" id="player1" placeholder="Be Street Racer" />
+        <input type="text" id="player2" placeholder="Be Police" />
+        <br />
+      </div>
+      <a href="tictactoe.html"><button id="begin">LETSGO DUDE!!!</button></a>
+    </div>
+
+    <script>
+      window.addEventListener("DOMContentLoaded", () => {
+        const backsound = document.getElementById("backsound");
+        //Harus di-trigger oleh interaksi pengguna karena autoplay di policy di browser
+        document.body.addEventListener(
+          "click",
+          () => {
+            backsound.play();
+          },
+          { once: true }
+        );
+      });
+
+      document.getElementById("begin").addEventListener("click", function () {
+        let player1name = document.getElementById("player1").value.trim();
+        let player2name = document.getElementById("player2").value.trim();
+
+        let mintaRandom = Math.random();
+        let cekBoolean;
+
+        if (mintaRandom >= 0.5) {
+          cekBoolean = true;
+        } else {
+          cekBoolean = false;
+        }
+
+        let playerX = "";
+        let playerO = "";
+
+        if (cekBoolean) {
+          playerX = player1name;
+          playerO = player2name;
+        } else {
+          playerX = player2name;
+          playerO = player1name;
+        }
+
+        localStorage.setItem("playerX", playerX);
+        localStorage.setItem("playerO", playerO);
+
+        // Save sound preference to localStorage
+        localStorage.setItem("soundEnabled", soundEnabled);
+
+        // Small delay to allow sound to play before navigating
+        setTimeout(function () {
+          window.location.href = "tictactoe.html";
+        }, 200);
+
+        // Prevent immediate navigation to allow sound to play
+        return false;
+      });
+    </script>
+    <audio id="backsound" src="/sounds/Backsound.mp4" loop autoplay></audio>
+  </body>
+</html>

@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tic Tac Toe</title>
+
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=New+Rocker&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
+
+      * {
+        font-family: "New Rocker", system-ui;
+        font-weight: 400;
+        font-style: normal;
+      }
+
+      @keyframes boardEnter {
+        from {
+          transform: scale(0.8);
+          opacity: 0;
+        }
+        to {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
+
+      @keyframes popIn {
+        0% {
+          transform: scale(0);
+          opacity: 0;
+        }
+        100% {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
+
+      .cell.win {
+        background-color: gold !important;
+        animation-fill-mode: both;
+        z-index: 1;
+      }
+
+      #board {
+        animation: boardEnter 0.5s ease;
+        display: grid;
+        grid-template-columns: repeat(3, 100px);
+        grid-template-rows: repeat(3, 100px);
+        gap: 18px;
+        margin: 20px auto;
+        width: max-content;
+      }
+
+      .cell {
+        width: 100px;
+        height: 100px;
+        background-color: #09090b;
+        border: 2px solid #c6510e;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+      }
+
+      .cell:hover {
+        background-color: #c6510e;
+        transform: scale(1.05);
+      }
+
+      .cell.clicked {
+        background-color: #d0ffd0;
+        animation: popIn 0.3s ease;
+      }
+
+      .cell.clicked-x {
+        background-color: #ffe6e6; /* merah muda untuk Street Racer (X) */
+      }
+
+      .cell.clicked-o {
+        background-color: #e6f0ff; /* biru muda untuk Police (O) */
+      }
+
+      body {
+        font-family: sans-serif;
+        text-align: center;
+        background-image: url(images/background.jpg);
+        background-position: center center;
+        background-repeat: no-repeat;
+        background-size: cover;
+        background-attachment: fixed;
+        overflow: hidden;
+        height: 100vh;
+        width: 100vw;
+        margin: 0;
+        padding: 0;
+      }
+
+      #modal {
+        display: none;
+        position: fixed;
+        z-index: 1;
+        padding-top: 100px;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgb(0, 0, 0);
+        background-color: rgba(0, 0, 0, 0.4);
+      }
+
+      #inside {
+        position: fixed; /* stays centered even when scrolling */
+        top: 45%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: rgba(255, 255, 255, 1); /* fallback color */
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+        max-width: 500px;
+        margin: auto;
+        border-radius: 10px;
+        z-index: -1;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        color: white;
+      }
+
+      #inside::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: url(images/dom_and_friend.gif); /* relative path fix */
+        transform: 0%, 0%;
+        background-size: cover;
+        background-repeat: no-repeat;
+        background-position: center;
+        border-radius: 10px;
+        opacity: 0.7;
+        z-index: 0;
+      }
+
+      #inside > * {
+        position: relative;
+        z-index: 1;
+      }
+
+      #close {
+        color: #aaaaaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+      }
+
+      #close:hover,
+      #close:focus {
+        color: #000;
+        text-decoration: none;
+        cursor: pointer;
+      }
+
+      #playersInfo {
+        margin: 15px auto;
+        font-size: 18px;
+        font-weight: bold;
+      }
+
+      .player-x {
+        color: #e6ecee;
+        font-size: 2rem;
+      }
+
+      .player-o {
+        color: #e6ecee;
+        font-size: 2rem;
+      }
+
+      #buttons {
+        margin: 20px auto;
+      }
+
+      button {
+        padding: 10px 20px;
+        margin: 0 10px;
+        background-color: #c6510e;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+      }
+
+      button:hover {
+        background-color: #e35e10;
+      }
+
+      /* Sound toggle button */
+      #soundToggle {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background-color: #f0f0f0;
+        border: 1px solid #ccc;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+      }
+
+      #soundToggle img {
+        width: 24px;
+        height: 24px;
+      }
+
+      .vs {
+        color: #f0f0f0;
+      }
+
+      @keyframes glow {
+        from {
+          text-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px #ff7700,
+            0 0 40px #ff7700, 0 0 50px #ff7700, 0 0 60px #ff7700,
+            0 0 70px #ff7700;
+        }
+        to {
+          text-shadow: 0 0 20px #fff, 0 0 30px #ff4102, 0 0 40px #ff4102,
+            0 0 50px #ff4102, 0 0 60px #ff4102, 0 0 70px #ff4102,
+            0 0 80px #ff4102;
+        }
+      }
+      .glow {
+        font-size: 80px;
+        color: #fff;
+        text-align: center;
+        -webkit-animation: glow 1s ease-in-out infinite alternate;
+        -moz-animation: glow 1s ease-in-out infinite alternate;
+        animation: glow 1s ease-in-out infinite alternate;
+      }
+    </style>
+  </head>
+
+  <body>
+    <img src="images/bgtext.png" alt="" width="420px" />
+
+    <!-- Sound Toggle Button -->
+    <div id="soundToggle" title="Toggle Sound">🔊</div>
+    <!-- Audio elements -->
+    <audio id="clickSound" src="sounds/menu.mp3" preload="auto"></audio>
+    <audio id="winSound" src="sounds/winsound.mp3" preload="auto"></audio>
+    <audio id="timeoutSound" src="sounds/timeout.mp3" preload="auto"></audio>
+    <audio id="drawSound" src="sounds/draw.mp3" preload="auto"></audio>
+    <audio id="clickSoundX" src="sounds/clickO.mp3" preload="auto"></audio>
+    <audio id="clickSoundO" src="sounds/clickX.mp3" preload="auto"></audio>
+
+    <div id="playersInfo">
+      <span id="playerXInfo" class="player-x"></span>
+      <p class="vs">VS</p>
+      <span id="playerOInfo" class="player-o"></span>
+    </div>
+
+    <div id="board"></div>
+    <p
+      id="turnDisplay"
+      class="glow outline"
+      style="font-size: larger; color: #f0f0f0; font-size: 2rem"
+    ></p>
+    <p id="countdown" style="font-size: large; color: #f0f0f0"></p>
+
+    <div id="buttons">
+      <button id="reset">MULAI LAGI</button>
+      <button id="menu">MENU</button>
+    </div>
+    <div id="modal"></div>
+
+    <script>
+      let currentPlayer = "X";
+      let boardState = ["", "", "", "", "", "", "", "", ""];
+      let gameOn = true;
+      let timer;
+      let soundEnabled = true;
+
+      let playerX = "";
+      let namaPemainX = localStorage.getItem("playerX");
+      if (namaPemainX) {
+        playerX = namaPemainX;
+      } else {
+        playerX = "Street Racer";
+      }
+
+      let playerO = "";
+      let namaPemainO = localStorage.getItem("playerO");
+      if (namaPemainO) {
+        playerO = namaPemainO;
+      } else {
+        playerO = "Police";
+      }
+
+      document.getElementById(
+        "playerXInfo"
+      ).textContent = `${playerX} = (Supra)`;
+      document.getElementById(
+        "playerOInfo"
+      ).textContent = `${playerO} = (Police Car)`;
+
+      const turnDisplay = document.getElementById("turnDisplay");
+      const reset = document.getElementById("reset");
+      const balikMenu = document.getElementById("menu");
+      const soundToggle = document.getElementById("soundToggle");
+
+      // Sound elements
+      const clickSound = document.getElementById("clickSound");
+      const winSound = document.getElementById("winSound");
+      const timeoutSound = document.getElementById("timeoutSound");
+      const drawSound = document.getElementById("drawSound");
+
+      // Function to play sounds
+      function playSound(sound) {
+        if (soundEnabled) {
+          sound.currentTime = 0;
+          sound.play();
+        }
+      }
+
+      // Toggle sound on/off
+      soundToggle.addEventListener("click", function () {
+        soundEnabled = !soundEnabled;
+        soundToggle.textContent = soundEnabled ? "🔊" : "🔇";
+      });
+
+      function createBoard() {
+        const board = document.getElementById("board");
+        board.innerHTML = "";
+
+        for (let i = 0; i < 9; i++) {
+          const cell = document.createElement("div");
+          cell.className = "cell";
+          cell.setAttribute("data-index", i);
+          cell.addEventListener("click", clickedCell);
+          board.appendChild(cell);
+        }
+
+        updateTurnDisplay();
+      }
+
+      function updateTurnDisplay() {
+        let currentPlayerName;
+
+        // Play different click sounds for X and O
+        if (currentPlayer === "X") {
+          currentPlayerName = playerX;
+          playSound(clickSoundX);
+          playSound;
+        } else if (currentPlayer === "O") {
+          currentPlayerName = playerO;
+          playSound(clickSoundO);
+        }
+
+        turnDisplay.textContent = `Giliran ${currentPlayerName}!`;
+      }
+
+      function clickTimer() {
+        clearInterval(timer);
+        time = 5;
+
+        const countdown = document.getElementById("countdown");
+        countdown.textContent = `${time} detik`;
+
+        timer = setInterval(() => {
+          time--;
+          countdown.textContent = `${time} detik`;
+
+          if (time <= 0) {
+            clearInterval(timer);
+            gameOn = false;
+
+            // Play timeout sound
+            playSound(timeoutSound);
+
+            let currentPlayerName = currentPlayer === "X" ? playerX : playerO;
+            turnDisplay.textContent = `${currentPlayerName} waktu kamu habis`;
+
+            let modalVar = document.getElementById("modal");
+            modalVar.innerHTML = "";
+
+            let insideModal = document.createElement("div");
+            insideModal.setAttribute("id", "inside");
+
+            let closeButton = document.createElement("span");
+            closeButton.setAttribute("id", "close");
+            closeButton.innerHTML = "&times;";
+
+            let timeoutMessage = document.createElement("h1");
+            timeoutMessage.textContent = "WAKTU HABIS!";
+
+            insideModal.appendChild(closeButton);
+            insideModal.appendChild(timeoutMessage);
+            modalVar.appendChild(insideModal);
+            modalVar.style.display = "block";
+
+            closeButton.onclick = () => (modalVar.style.display = "none");
+            window.onclick = (event) => {
+              if (event.target == modalVar) {
+                modalVar.style.display = "none";
+              }
+            };
+          }
+        }, 1000);
+      }
+
+      function clickedCell(event) {
+        if (!gameOn) return;
+
+        const cell = event.target;
+        const index = Number(cell.getAttribute("data-index"));
+
+        if (cell.className === "cell" && boardState[index] === "") {
+          // Play click sound
+          playSound(clickSound);
+
+          clearInterval(timer);
+          cell.className += " clicked";
+
+          cell.classList.add("clicked");
+          cell.classList.add(currentPlayer === "X" ? "clicked-x" : "clicked-o");
+
+          const img = document.createElement("img");
+          img.src =
+            currentPlayer === "X" ? "images/street.png" : "images/police.png";
+          img.style.width = "80%";
+          img.style.height = "80%";
+          img.style.objectFit = "contain";
+          cell.appendChild(img);
+          boardState[index] = currentPlayer;
+
+          checkWinner();
+
+          if (gameOn) {
+            currentPlayer = currentPlayer === "X" ? "O" : "X";
+            updateTurnDisplay();
+            clickTimer();
+          }
+        }
+      }
+
+      function checkWinner() {
+        const winPattern = [
+          [0, 3, 6],
+          [1, 4, 7],
+          [2, 5, 8],
+          [0, 1, 2],
+          [3, 4, 5],
+          [6, 7, 8],
+          [0, 4, 8],
+          [2, 4, 6],
+        ];
+
+        for (let i = 0; i < winPattern.length; i++) {
+          let [a, b, c] = winPattern[i];
+          if (
+            boardState[a] !== "" &&
+            boardState[a] === boardState[b] &&
+            boardState[a] === boardState[c]
+          ) {
+            gameOn = false;
+            clearInterval(timer);
+
+            // Play win sound
+            playSound(winSound);
+
+            const board = document.getElementById("board").children;
+
+            document.querySelectorAll(".cell")[a].classList.add("win");
+            document.querySelectorAll(".cell")[b].classList.add("win");
+            document.querySelectorAll(".cell")[c].classList.add("win");
+
+            console.log(a, b, c);
+
+            let winnerName;
+
+            if (currentPlayer === "X") {
+              winnerName = playerX;
+            } else if (currentPlayer === "O") {
+              winnerName = playerO;
+            }
+
+            turnDisplay.textContent = `WINNER: ${winnerName}!`;
+
+            let modalVar = document.getElementById("modal");
+            modalVar.innerHTML = "";
+
+            let insideModal = document.createElement("div");
+            insideModal.setAttribute("id", "inside");
+
+            let closeButton = document.createElement("span");
+            closeButton.setAttribute("id", "close");
+            closeButton.innerHTML = "&times;";
+
+            let congrats = document.createElement("p");
+            congrats.setAttribute("id", "congrats");
+            congrats.innerHTML = "Congrats!";
+
+            let winner = document.createElement("h1");
+            winner.setAttribute("id", "winner");
+            winner.textContent = `${winnerName} MENANG!`;
+
+            insideModal.appendChild(closeButton);
+            insideModal.appendChild(congrats);
+            insideModal.appendChild(winner);
+            modalVar.appendChild(insideModal);
+
+            modalVar.style.display = "block";
+
+            closeButton.onclick = function () {
+              modalVar.style.display = "none";
+            };
+
+            window.onclick = function (event) {
+              if (event.target == modalVar) {
+                modalVar.style.display = "none";
+              }
+            };
+            return;
+          }
+        }
+
+        let full = true;
+        for (let i = 0; i < 9; i++) {
+          if (boardState[i] === "") {
+            full = false;
+            break;
+          }
+        }
+
+        if (full) {
+          gameOn = false;
+          clearInterval(timer);
+
+          // Play draw sound
+          playSound(drawSound);
+
+          turnDisplay.textContent = "SERI !!!";
+
+          let modalVar = document.getElementById("modal");
+          modalVar.innerHTML = "";
+
+          let insideModal = document.createElement("div");
+          insideModal.setAttribute("id", "inside");
+
+          let closeButton = document.createElement("span");
+          closeButton.setAttribute("id", "close");
+          closeButton.innerHTML = "&times;";
+
+          let drawMessage = document.createElement("h1");
+          drawMessage.textContent = "SERI!";
+
+          insideModal.appendChild(closeButton);
+          insideModal.appendChild(drawMessage);
+          modalVar.appendChild(insideModal);
+
+          modalVar.style.display = "block";
+
+          closeButton.onclick = function () {
+            modalVar.style.display = "none";
+          };
+
+          window.onclick = function (event) {
+            if (event.target == modalVar) {
+              modalVar.style.display = "none";
+            }
+          };
+        }
+      }
+
+      function resetGame() {
+        currentPlayer = "X";
+        boardState = ["", "", "", "", "", "", "", "", ""];
+        gameOn = true;
+        createBoard();
+
+        let modalVar = document.getElementById("modal");
+        modalVar.style.display = "none";
+
+        clearInterval(timer);
+        document.getElementById("countdown").textContent = "";
+      }
+
+      function balikKeMenu() {
+        window.location.href = "index.html";
+      }
+
+      reset.addEventListener("click", resetGame);
+      balikMenu.addEventListener("click", balikKeMenu);
+
+      createBoard();
+    </script>
+  </body>
+</html>
